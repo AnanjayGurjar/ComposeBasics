@@ -1,10 +1,13 @@
 package com.ananjay.composebasics.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
@@ -24,8 +27,35 @@ fun CustomComponent(
     indicatorValue: Int = 0,
     maxIndicatorValue: Int = 100,
     backgroundIndicatorColor: Color = MaterialTheme.colors.onSurface.copy(alpha = 0.1f),
-    backgroundIndicatorStrokeWidth: Float = 100f
+    backgroundIndicatorStrokeWidth: Float = 100f,
+    foregroundIndicatorColor: Color = MaterialTheme.colors.primary,
+    foregroundIndicatorStrokeWidth: Float = 100f
 ) {
+    var allowedIndicatorValue by remember {
+        mutableStateOf(maxIndicatorValue)
+    }
+
+    allowedIndicatorValue = if (indicatorValue <= maxIndicatorValue){
+        indicatorValue
+    }else{
+        maxIndicatorValue
+    }
+
+    val animatedIndicatedValue = remember{
+        Animatable(initialValue = 0f)
+    }
+    LaunchedEffect(key1 = allowedIndicatorValue ){
+        animatedIndicatedValue.animateTo(indicatorValue.toFloat())
+    }
+
+    val percentage = (animatedIndicatedValue.value/maxIndicatorValue) * 100
+
+    val sweepAngle by animateFloatAsState(
+        //2.4, since max angle is 240
+        targetValue = (2.4 * percentage).toFloat(),
+        animationSpec = tween(1000)
+    )
+
     Column(modifier = Modifier
         .size(canvasSize)
         .drawBehind {
@@ -34,6 +64,12 @@ fun CustomComponent(
                 componentSize = componentSize,
                 indicatorColor = backgroundIndicatorColor,
                 indicatorStrokeWidth = backgroundIndicatorStrokeWidth
+            )
+            foregroundIndicator(
+                sweepAngle = sweepAngle,
+                componentSize = componentSize,
+                indicatorColor = foregroundIndicatorColor,
+                indicatorStrokeWidth = foregroundIndicatorStrokeWidth
             )
         }
     ) {
@@ -50,6 +86,29 @@ fun DrawScope.backgroundIndicator(
         color = indicatorColor,
         startAngle = 150f,
         sweepAngle = 240f,
+        useCenter = false,
+        style = Stroke(
+            width = indicatorStrokeWidth,
+            cap = StrokeCap.Round
+        ),
+        topLeft = Offset(
+            x = (size.width - componentSize.width)/2f,
+            y = (size.height - componentSize.height)/2f
+        )
+    )
+}
+
+fun DrawScope.foregroundIndicator(
+    sweepAngle: Float,
+    componentSize: Size,
+    indicatorColor: Color,
+    indicatorStrokeWidth: Float
+){
+    drawArc(
+        size = componentSize,
+        color = indicatorColor,
+        startAngle = 150f,
+        sweepAngle = sweepAngle,
         useCenter = false,
         style = Stroke(
             width = indicatorStrokeWidth,
