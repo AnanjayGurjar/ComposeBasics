@@ -1,7 +1,9 @@
 package com.ananjay.composebasics.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -68,6 +70,20 @@ fun CustomComponent(
         targetValue = (2.4 * percentage).toFloat(),
         animationSpec = tween(1000)
     )
+    val recievedValue by animateIntAsState(
+        targetValue = allowedIndicatorValue,
+        animationSpec = tween(1000)
+
+    )
+
+    val animatedBigTextColor by animateColorAsState(
+        targetValue = if(allowedIndicatorValue == 0){
+            MaterialTheme.colors.onSurface.copy(alpha = 0.3f)
+        }else{
+            bigTextColor
+        },
+        animationSpec = tween(1000)
+    )
 
     Column(modifier = Modifier
         .size(canvasSize)
@@ -89,9 +105,9 @@ fun CustomComponent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         EmbeddedElements(
-            bigText = allowedIndicatorValue,
+            bigText = recievedValue,
             bigTextFontSize = bigTextFontSize,
-            bigTextColor = bigTextColor,
+            bigTextColor = animatedBigTextColor,
             bigTextSuffix = bigTextSuffix,
             smallText = smallText,
             smallTextColor = smallTextColor,
